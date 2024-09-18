@@ -138,9 +138,6 @@ function saveAnnotation() {
         document.getElementById('annotations').innerHTML = ''; // Clear displayed annotations
         annotations = []; // Clear current annotation list
 
-        // Display user progress
-        document.getElementById('user-progress').textContent = `You have annotated ${data.userProgress.annotatedVideos} videos.`;
-
         // Load the next video
         videoIndex = (videoIndex + 1) % videos.length;
         loadVideo();

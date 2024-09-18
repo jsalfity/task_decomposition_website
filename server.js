@@ -3,47 +3,52 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-
 app.use(express.json());
 
-const annotationsFile = path.join(__dirname, 'annotations.json');
-const usersFile = path.join(__dirname, 'users.json');
+// Directory where the annotation files will be stored
+const annotationsDir = path.join(__dirname, 'annotations');
 
-// Load existing annotations or initialize as empty
-let annotations = fs.existsSync(annotationsFile) ? JSON.parse(fs.readFileSync(annotationsFile, 'utf8')) : {};
-let users = fs.existsSync(usersFile) ? JSON.parse(fs.readFileSync(usersFile, 'utf8')) : {};
+// Ensure the directory exists
+if (!fs.existsSync(annotationsDir)) {
+    fs.mkdirSync(annotationsDir);
+}
 
-// Endpoint to save annotation
+// Endpoint to save annotations
 app.post('/save', (req, res) => {
     const { username, video, annotations: userAnnotations } = req.body;
 
-    // Ensure the video exists in the annotations file
-    if (!annotations[video]) {
-        annotations[video] = { annotations: [], annotationCount: 0 };
+    // Define the file path for the video annotations
+    const annotationFile = path.join(annotationsDir, `${video}.json`);
+
+    // Load existing annotations for the video (if any)
+    let existingAnnotations = [];
+    if (fs.existsSync(annotationFile)) {
+        const fileContent = fs.readFileSync(annotationFile, 'utf8');
+        existingAnnotations = fileContent ? JSON.parse(fileContent) : [];
     }
 
-    // Add the new annotation to the video
-    annotations[video].annotations.push({ username, subtasks: userAnnotations });
+    // Structure for the new subtask decomposition
+    const subtaskDecomposition = userAnnotations.map(annotation => [
+        annotation.startStep,
+        annotation.endStep,
+        annotation.subtask
+    ]);
 
-    // Increment the annotation count
-    annotations[video].annotationCount++;
+    // Create a new annotation entry for this user
+    const newEntry = {
+        username,
+        subtask_decomposition: subtaskDecomposition,
+        timeSpent: userAnnotations.reduce((acc, curr) => acc + curr.timeSpent, 0) // Summing up total time spent
+    };
+
+    // Add the new annotation to the list
+    existingAnnotations.push(newEntry);
 
     // Save the updated annotations to the file
-    fs.writeFileSync(annotationsFile, JSON.stringify(annotations, null, 2), 'utf8');
+    fs.writeFileSync(annotationFile, JSON.stringify(existingAnnotations, null, 2), 'utf8');
 
-    // Track user's progress in users.json
-    if (!users[username]) {
-        users[username] = { annotatedVideos: 0 };
-    }
-
-    // Increment the number of annotated videos by the user
-    users[username].annotatedVideos++;
-
-    // Save the user's updated progress
-    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2), 'utf8');
-
-    // Send back the updated annotation count and user progress
-    res.json({ annotationCount: annotations[video].annotationCount, userProgress: users[username] });
+    // Respond with success
+    res.json({ message: 'Annotations saved successfully!' });
 });
 
 // Serve static files from the public directory
