@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robotics Video Annotation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Left column: Video and annotation form */
+        #main-container {
+            flex: 2;
+            margin-right: 20px;
+        }
+
+        /* Right column: Instructions */
+        #instructions-container {
+            flex: 1;
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        /* Styling for video player and annotation form */
+        #video-container {
+            margin-bottom: 20px;
+        }
+
+        #annotation-list {
+            margin-top: 10px;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 80px;
+            margin-right: 5px;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+
+        #feedback {
+            margin-top: 10px;
+            color: green;
+        }
+
+        h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left column: Video and annotation input -->
+    <div id="main-container">
+        <h1>Robotics Video Annotation</h1>
+        <div id="user-progress"></div>
+
+        <!-- Video player -->
+        <div id="video-container">
+            <video id="videoPlayer" width="640" controls>
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <!-- Username input -->
+        <div>
+            <label for="username">Username:</label>
+            <input type="text" id="username" placeholder="Enter your username">
+        </div>
+
+        <!-- Form to input subtasks -->
+        <div>
+            <label for="startStep">Start Step:</label>
+            <input type="number" id="startStep" min="0" placeholder="0">
+
+            <label for="endStep">End Step:</label>
+            <input type="number" id="endStep" min="0" placeholder="1">
+
+            <label for="subtask">Subtask:</label>
+            <input type="text" id="subtask" placeholder="Subtask description">
+
+            <button onclick="addSubtask()">Add Subtask</button>
+        </div>
+
+        <!-- Display the current list of subtasks -->
+        <div id="annotation-list">
+            <h3>Subtask Annotations:</h3>
+            <ul id="annotations"></ul>
+        </div>
+
+        <!-- Save button -->
+        <div>
+            <button onclick="saveAnnotation()">Save Annotation</button>
+        </div>
+
+        <!-- Feedback message -->
+        <div id="feedback"></div>
+    </div>
+
+    <!-- Right column: Instructions -->
+    <div id="instructions-container">
+        <h3>Instructions</h3>
+        <p>Your task is to watch the robot episode presented in the video player and break down the robot's behavior into granular subtasks using the form provided. Each video may have step annotations to help you identify the start and end of each subtask. Follow these steps to complete the subtask decomposition:</p>
+
+        <ol>
+            <li>
+                <strong>Watch the video carefully</strong> and notice the step annotations on the video. These steps will help you define the start and end points of each subtask.
+            </li>
+            <li>
+                <strong>For each subtask</strong>, fill out the following fields:
+                <ul>
+                    <li><strong>Start Step</strong>: Enter the start step of the subtask (in blue text on the video frames).</li>
+                    <li><strong>End Step</strong>: Enter the end step of the subtask (in blue text on the video frames).</li>
+                    <li><strong>Subtask Description</strong>: Provide a short description of what the robot is doing during this step period (e.g., "reaching down" or "moving to object").</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Click "Add Subtask"</strong> to add the subtask to the list. You will see the subtask appear below, with the start step, end step, and description displayed.
+            </li>
+            <li>
+                <strong>Edit or Remove Subtasks</strong>:
+                <ul>
+                    <li>If you need to modify a subtask after adding it, you can directly edit the start step, end step, or description in the displayed list.</li>
+                    <li>Click "Save Changes" next to the subtask after making edits.</li>
+                    <li>To delete a subtask, click "Remove" next to the corresponding subtask.</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Save your complete annotation</strong>:
+                <ul>
+                    <li>After entering all the subtasks for the video, click the "Save Annotation" button.</li>
+                    <li>This will submit your decomposition, saving the list of subtasks for this video.</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h4>Example of a Subtask Decomposition:</h4>
+        <pre>
+        subtask_decomposition = [
+            (0, 5, "move to above object"),
+            (6, 10, "reach down to grab object"),
+            (11, 15, "pick up object"),
+            (16, 20, "move away from object")
+        ]
+        </pre>
+
+        <h4>Points to Remember:</h4>
+        <ul>
+            <li>Pay attention to changes in the robot's actions and environment to determine subtask boundaries.</li>
+            <li>Keep your subtask descriptions concise but clear.</li>
+            <li>You can update or remove any subtasks before saving the final annotation.</li>
+        </ul>
+    </div>
+
+    <!-- Include the app.js file -->
+    <script src="app.js"></script>
+
+</body>
+</html>

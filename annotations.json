@@ -1,0 +1,96 @@
+{
+  "Lift_20240220-124638_3.mp4": {
+    "annotations": [
+      {
+        "username": "jsalfity",
+        "subtasks": [
+          {
+            "startStep": 1,
+            "endStep": 10,
+            "subtask": "moving down",
+            "timeSpent": 7
+          },
+          {
+            "startStep": 11,
+            "endStep": 29,
+            "subtask": "reaching down",
+            "timeSpent": 7
+          }
+        ]
+      },
+      {
+        "username": "phl",
+        "subtasks": [
+          {
+            "startStep": 1,
+            "endStep": 10,
+            "subtask": "hi",
+            "timeSpent": 25
+          },
+          {
+            "startStep": 19,
+            "endStep": 20,
+            "subtask": "mom",
+            "timeSpent": 4
+          }
+        ]
+      },
+      {
+        "username": "phl",
+        "subtasks": [
+          {
+            "startStep": 1,
+            "endStep": 2,
+            "subtask": "hi ",
+            "timeSpent": 11
+          },
+          {
+            "startStep": 102,
+            "endStep": 12,
+            "subtask": "modsf",
+            "timeSpent": 4
+          }
+        ]
+      },
+      {
+        "username": "jsalfity",
+        "subtasks": [
+          {
+            "startStep": 1,
+            "endStep": 10,
+            "subtask": "down",
+            "timeSpent": 8
+          }
+        ]
+      }
+    ],
+    "annotationCount": 4
+  },
+  "PickPlace_20240213-110236_0.mp4": {
+    "annotations": [
+      {
+        "username": "jsalfity",
+        "subtasks": [
+          {
+            "startStep": 10,
+            "endStep": 11,
+            "subtask": "hi",
+            "timeSpent": 21
+          }
+        ]
+      },
+      {
+        "username": "phl",
+        "subtasks": [
+          {
+            "startStep": 10,
+            "endStep": 29,
+            "subtask": "moving down",
+            "timeSpent": 26
+          }
+        ]
+      }
+    ],
+    "annotationCount": 2
+  }
+}

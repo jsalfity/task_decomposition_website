@@ -1,0 +1,155 @@
+let videoIndex = 0;
+let videos = [];
+let annotations = [];
+let startTime = 0; // Track time spent on each video
+
+// Load the video list from the videos.json file
+async function loadVideoList() {
+    try {
+        const response = await fetch('/videos.json'); // Load video list
+        const data = await response.json();
+        videos = data.videos; // Use videos from the videos.json file
+        loadVideo(); // Load the first available video
+    } catch (error) {
+        console.error('Error loading video list:', error);
+    }
+}
+
+// Load the initial video
+function loadVideo() {
+    const videoPlayer = document.getElementById('videoPlayer');
+    if (videos.length > 0) {
+        videoPlayer.src = videos[videoIndex];
+        videoPlayer.load();
+        resetTimer(); // Reset the timer for tracking how long the user spends on this video
+    } else {
+        document.getElementById('feedback').textContent = 'No videos available.';
+    }
+}
+
+// Function to reset and start the timer
+function resetTimer() {
+    startTime = Date.now(); // Reset the start time to the current time
+}
+
+// Function to calculate the time spent on each video in seconds
+function getElapsedTime() {
+    const currentTime = Date.now();
+    return Math.floor((currentTime - startTime) / 1000); // Calculate elapsed time in seconds
+}
+
+// Function to add a subtask to the list of annotations
+function addSubtask() {
+    const startStep = parseInt(document.getElementById('startStep').value);
+    const endStep = parseInt(document.getElementById('endStep').value);
+    const subtask = document.getElementById('subtask').value;
+    const elapsedTime = getElapsedTime(); // Calculate how long the user took
+
+    // Validate inputs
+    if (isNaN(startStep) || isNaN(endStep) || !subtask) {
+        alert("Please provide valid inputs for all fields.");
+        return;
+    }
+
+    // Add the subtask to the annotations array
+    const subtaskTuple = { startStep, endStep, subtask, timeSpent: elapsedTime };
+    annotations.push(subtaskTuple);
+
+    // Display the subtask in an editable list (without time spent)
+    const annotationList = document.getElementById('annotations');
+    const li = document.createElement('li');
+    li.innerHTML = `
+        <input type="number" class="edit-start-step" value="${startStep}" min="0">
+        <input type="number" class="edit-end-step" value="${endStep}" min="0">
+        <input type="text" class="edit-subtask" value="${subtask}">
+        <button onclick="updateSubtask(this)">Save Changes</button>
+        <button onclick="removeSubtask(this)">Remove</button>
+    `;
+    annotationList.appendChild(li);
+
+    // Clear the input fields after adding the subtask
+    document.getElementById('startStep').value = '';
+    document.getElementById('endStep').value = '';
+    document.getElementById('subtask').value = '';
+
+    resetTimer(); // Reset the timer for the next subtask
+}
+
+// Function to update a subtask in the list
+function updateSubtask(button) {
+    const li = button.parentNode;
+    const startStepInput = li.querySelector('.edit-start-step');
+    const endStepInput = li.querySelector('.edit-end-step');
+    const subtaskInput = li.querySelector('.edit-subtask');
+
+    const newStartStep = parseInt(startStepInput.value);
+    const newEndStep = parseInt(endStepInput.value);
+    const newSubtask = subtaskInput.value;
+
+    const index = Array.from(li.parentNode.children).indexOf(li);
+
+    // Update the corresponding subtask in the annotations array
+    annotations[index] = { startStep: newStartStep, endStep: newEndStep, subtask: newSubtask };
+
+    // Update feedback message
+    document.getElementById('feedback').textContent = 'Subtask updated.';
+}
+
+// Function to remove a subtask from the list
+function removeSubtask(button) {
+    const li = button.parentNode;
+    const index = Array.from(li.parentNode.children).indexOf(li);
+
+    // Remove the subtask from the annotations array
+    annotations.splice(index, 1);
+
+    // Remove the list item from the DOM
+    li.remove();
+}
+
+// Function to save the annotation and update user progress
+function saveAnnotation() {
+    const username = document.getElementById('username').value.trim();
+    if (!username) {
+        alert("Please enter your username.");
+        return;
+    }
+
+    const videoSrc = videos[videoIndex];
+    const videoFilename = videoSrc.split("/").pop(); // Extract the video filename
+
+    const annotationData = {
+        username: username,
+        video: videoFilename,
+        annotations: annotations // List of subtasks (with timeSpent)
+    };
+
+    // Send the annotation data to the backend for saving
+    fetch('/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(annotationData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('feedback').textContent = 'Annotation saved successfully!';
+        document.getElementById('annotations').innerHTML = ''; // Clear displayed annotations
+        annotations = []; // Clear current annotation list
+
+        // Display user progress
+        document.getElementById('user-progress').textContent = `You have annotated ${data.userProgress.annotatedVideos} videos.`;
+
+        // Load the next video
+        videoIndex = (videoIndex + 1) % videos.length;
+        loadVideo();
+    })
+    .catch(error => {
+        console.error('Error saving annotation:', error);
+        document.getElementById('feedback').textContent = 'Error saving annotation.';
+    });
+}
+
+// Load the video list on page load
+window.onload = loadVideoList;
