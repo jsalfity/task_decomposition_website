@@ -1,0 +1,21 @@
+# Node modules directory
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+/.pnp
+.pnp.js
+
+# Package lock files
+package-lock.json
+
+# Generated files for annotations and users
+annotations.json
+users.json
+
+# Miscellaneous
+.DS_Store
