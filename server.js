@@ -5,6 +5,8 @@ const path = require('path');
 const app = express();
 app.use(express.json());
 
+const MAX_ANNOTATIONS = 3;  // Define the maximum number of annotations allowed per video
+
 // Directory where the annotation files will be stored
 const annotationsDir = path.join(__dirname, 'annotations');
 
@@ -44,7 +46,8 @@ app.get('/video-progress', (req, res) => {
 
         return {
             video,
-            annotationCount
+            annotationCount,
+            maxAnnotations: MAX_ANNOTATIONS // Include the max annotations in the response
         };
     });
 
