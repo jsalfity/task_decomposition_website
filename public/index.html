@@ -3,163 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robotics Video Annotation</title>
+    <title>Video Annotation Homepage</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-            display: flex;
-            flex-direction: row;
         }
-
-        /* Left column: Video and annotation form */
-        #main-container {
-            flex: 2;
-            margin-right: 20px;
-        }
-
-        /* Right column: Instructions */
-        #instructions-container {
-            flex: 1;
-            background-color: #f8f8f8;
-            padding: 15px;
-            border-radius: 5px;
-        }
-
-        /* Styling for video player and annotation form */
-        #video-container {
+        h1, h2 {
             margin-bottom: 20px;
         }
-
-        #annotation-list {
-            margin-top: 10px;
+        .video-entry {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
         }
-
-        input[type="number"], input[type="text"] {
-            width: 80px;
-            margin-right: 5px;
+        .progress-bar {
+            width: 200px;
+            height: 20px;
+            background-color: #ddd;
+            margin-left: 20px;
+            position: relative;
         }
-
-        button {
-            margin-top: 10px;
+        .progress {
+            height: 100%;
+            background-color: green;
         }
-
-        #feedback {
-            margin-top: 10px;
-            color: green;
+        .gray-out {
+            color: gray;
+            pointer-events: none; /* Makes it unclickable */
         }
-
-        h3 {
-            margin-top: 0;
+        .progress-text {
+            margin-left: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <!-- Left column: Video and annotation input -->
-    <div id="main-container">
-        <h1>Robotics Video Annotation</h1>
-        <div id="user-progress"></div>
+    <h1>Video Annotation Homepage</h1>
+    <h3>Click on any video link with less than 3 annotations to start annotating.</h3>
+    <h3>The instructions for annotation will be on the next page.</h3>
+    <div id="video-list"></div>
 
-        <!-- Video player -->
-        <div id="video-container">
-            <video id="videoPlayer" width="640" controls>
-                Your browser does not support the video tag.
-            </video>
-        </div>
+    <script>
+        async function loadVideoProgress() {
+            try {
+                const response = await fetch('/video-progress'); // Fetch progress from the backend
+                if (!response.ok) {
+                    throw new Error('Failed to fetch video progress');
+                }
 
-        <!-- Username input -->
-        <div>
-            <label for="username">Username:</label>
-            <input type="text" id="username" placeholder="Enter your username">
-        </div>
+                const videos = await response.json();
+                console.log('Fetched video progress:', videos); // Debugging: log fetched data
 
-        <!-- Form to input subtasks -->
-        <div>
-            <label for="startStep">Start Step:</label>
-            <input type="number" id="startStep" min="0" placeholder="0">
+                const videoList = document.getElementById('video-list');
+                videoList.innerHTML = ''; // Clear existing content
 
-            <label for="endStep">End Step:</label>
-            <input type="number" id="endStep" min="0" placeholder="1">
+                videos.forEach(videoData => {
+                    const { video, annotationCount, maxAnnotations } = videoData;
+                    const progressPercentage = (annotationCount / maxAnnotations) * 100;
 
-            <label for="subtask">Subtask:</label>
-            <input type="text" id="subtask" placeholder="Subtask description">
+                    const videoEntry = document.createElement('div');
+                    videoEntry.className = 'video-entry';
 
-            <button onclick="addSubtask()">Add Subtask</button>
-        </div>
+                    const videoName = document.createElement('a');
+                    videoName.textContent = video;
+                    videoName.href = `/annotate.html?video=${video}`;
 
-        <!-- Display the current list of subtasks -->
-        <div id="annotation-list">
-            <h3>Subtask Annotations:</h3>
-            <ul id="annotations"></ul>
-        </div>
+                    if (annotationCount >= maxAnnotations) {
+                        videoName.classList.add('gray-out');
+                    }
 
-        <!-- Save button -->
-        <div>
-            <button onclick="saveAnnotation()">Save Annotation</button>
-        </div>
+                    const progressBar = document.createElement('div');
+                    progressBar.className = 'progress-bar';
+                    const progress = document.createElement('div');
+                    progress.className = 'progress';
+                    progress.style.width = `${progressPercentage}%`;
 
-        <!-- Feedback message -->
-        <div id="feedback"></div>
-    </div>
+                    progressBar.appendChild(progress);
 
-    <!-- Right column: Instructions -->
-    <div id="instructions-container">
-        <h3>Instructions</h3>
-        <p>Your task is to watch the robot episode presented in the video player and break down the robot's behavior into granular subtasks using the form provided. Each video may have step annotations to help you identify the start and end of each subtask. Follow these steps to complete the subtask decomposition:</p>
+                    const progressText = document.createElement('span');
+                    progressText.className = 'progress-text';
+                    progressText.textContent = `${annotationCount}/${maxAnnotations} annotations completed`;
 
-        <ol>
-            <li>
-                <strong>Watch the video carefully</strong> and notice the step annotations on the video. These steps will help you define the start and end points of each subtask.
-            </li>
-            <li>
-                <strong>For each subtask</strong>, fill out the following fields:
-                <ul>
-                    <li><strong>Start Step</strong>: Enter the start step of the subtask (in blue text on the video frames).</li>
-                    <li><strong>End Step</strong>: Enter the end step of the subtask (in blue text on the video frames).</li>
-                    <li><strong>Subtask Description</strong>: Provide a short description of what the robot is doing during this step period (e.g., "reaching down" or "moving to object").</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Click "Add Subtask"</strong> to add the subtask to the list. You will see the subtask appear below, with the start step, end step, and description displayed.
-            </li>
-            <li>
-                <strong>Edit or Remove Subtasks</strong>:
-                <ul>
-                    <li>If you need to modify a subtask after adding it, you can directly edit the start step, end step, or description in the displayed list.</li>
-                    <li>Click "Save Changes" next to the subtask after making edits.</li>
-                    <li>To delete a subtask, click "Remove" next to the corresponding subtask.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Save your complete annotation</strong>:
-                <ul>
-                    <li>After entering all the subtasks for the video, click the "Save Annotation" button.</li>
-                    <li>This will submit your decomposition, saving the list of subtasks for this video.</li>
-                </ul>
-            </li>
-        </ol>
+                    videoEntry.appendChild(videoName);
+                    videoEntry.appendChild(progressBar);
+                    videoEntry.appendChild(progressText);
+                    videoList.appendChild(videoEntry);
+                });
+            } catch (error) {
+                console.error('Error loading video progress:', error);
+            }
+        }
 
-        <h4>Example of a Subtask Decomposition:</h4>
-        <pre>
-        subtask_decomposition = [
-            (0, 5, "move to above object"),
-            (6, 10, "reach down to grab object"),
-            (11, 15, "pick up object"),
-            (16, 20, "move away from object")
-        ]
-        </pre>
-
-        <h4>Points to Remember:</h4>
-        <ul>
-            <li>Pay attention to changes in the robot's actions and environment to determine subtask boundaries.</li>
-            <li>Keep your subtask descriptions concise but clear.</li>
-            <li>You can update or remove any subtasks before saving the final annotation.</li>
-        </ul>
-    </div>
-
-    <!-- Include the app.js file -->
-    <script src="app.js"></script>
+        window.onload = loadVideoProgress;
+    </script>
 
 </body>
 </html>

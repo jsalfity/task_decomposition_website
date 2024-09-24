@@ -3,47 +3,81 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-
 app.use(express.json());
 
-const annotationsFile = path.join(__dirname, 'annotations.json');
-const usersFile = path.join(__dirname, 'users.json');
+// Directory where the annotation files will be stored
+const annotationsDir = path.join(__dirname, 'annotations');
 
-// Load existing annotations or initialize as empty
-let annotations = fs.existsSync(annotationsFile) ? JSON.parse(fs.readFileSync(annotationsFile, 'utf8')) : {};
-let users = fs.existsSync(usersFile) ? JSON.parse(fs.readFileSync(usersFile, 'utf8')) : {};
+// Ensure the directory exists
+if (!fs.existsSync(annotationsDir)) {
+    fs.mkdirSync(annotationsDir);
+}
 
-// Endpoint to save annotation
+// Serve the overview.html page when a user visits /overview
+app.get('/overview', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'overview.html'));
+});
+
+// Serve the annotation page (assuming it’s in public/annotate.html)
+app.get('/annotate.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'annotate.html'));
+});
+
+// Endpoint to get video progress (number of annotations per video)
+app.get('/video-progress', (req, res) => {
+    const videosFile = path.join(__dirname, 'public', 'videos.json'); // Assuming this holds your video filenames
+
+    if (!fs.existsSync(videosFile)) {
+        return res.status(500).json({ message: 'Videos list not found.' });
+    }
+
+    const videos = JSON.parse(fs.readFileSync(videosFile, 'utf8')).videos;
+    const videoProgress = videos.map(video => {
+        const annotationFile = path.join(annotationsDir, `${video}.json`);
+        let annotationCount = 0;
+
+        if (fs.existsSync(annotationFile)) {
+            const fileContent = fs.readFileSync(annotationFile, 'utf8');
+            const annotations = fileContent ? JSON.parse(fileContent) : [];
+            annotationCount = annotations.length;
+        }
+
+        return {
+            video,
+            annotationCount
+        };
+    });
+
+    res.json(videoProgress);
+});
+
+// Endpoint to save annotations (same as before)
 app.post('/save', (req, res) => {
     const { username, video, annotations: userAnnotations } = req.body;
 
-    // Ensure the video exists in the annotations file
-    if (!annotations[video]) {
-        annotations[video] = { annotations: [], annotationCount: 0 };
+    const annotationFile = path.join(annotationsDir, `${video}.json`);
+
+    let existingAnnotations = [];
+    if (fs.existsSync(annotationFile)) {
+        const fileContent = fs.readFileSync(annotationFile, 'utf8');
+        existingAnnotations = fileContent ? JSON.parse(fileContent) : [];
     }
 
-    // Add the new annotation to the video
-    annotations[video].annotations.push({ username, subtasks: userAnnotations });
+    const subtaskDecomposition = userAnnotations.map(annotation => [
+        annotation.startStep,
+        annotation.endStep,
+        annotation.subtask
+    ]);
 
-    // Increment the annotation count
-    annotations[video].annotationCount++;
+    const newEntry = {
+        username,
+        subtask_decomposition: subtaskDecomposition,
+        timeSpent: userAnnotations.reduce((acc, curr) => acc + curr.timeSpent, 0)
+    };
 
-    // Save the updated annotations to the file
-    fs.writeFileSync(annotationsFile, JSON.stringify(annotations, null, 2), 'utf8');
-
-    // Track user's progress in users.json
-    if (!users[username]) {
-        users[username] = { annotatedVideos: 0 };
-    }
-
-    // Increment the number of annotated videos by the user
-    users[username].annotatedVideos++;
-
-    // Save the user's updated progress
-    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2), 'utf8');
-
-    // Send back the updated annotation count and user progress
-    res.json({ annotationCount: annotations[video].annotationCount, userProgress: users[username] });
+    existingAnnotations.push(newEntry);
+    fs.writeFileSync(annotationFile, JSON.stringify(existingAnnotations, null, 2), 'utf8');
+    res.json({ message: 'Annotations saved successfully!' });
 });
 
 // Serve static files from the public directory
