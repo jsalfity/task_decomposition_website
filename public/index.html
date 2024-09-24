@@ -41,8 +41,7 @@
 <body>
 
     <h1>Video Annotation Homepage</h1>
-    <h2>Click on a video that needs annotation.</h2>
-
+    <h3>Click on any video link with less than 5 annotations to start annotating.</h3>
     <div id="video-list"></div>
 
     <script>
@@ -89,7 +88,7 @@
                     // Create progress text like "4/5 videos annotated"
                     const progressText = document.createElement('span');
                     progressText.className = 'progress-text';
-                    progressText.textContent = `${annotationCount}/5 videos annotated`;
+                    progressText.textContent = `${annotationCount}/5  annotations`;
 
                     videoEntry.appendChild(videoName);
                     videoEntry.appendChild(progressBar);

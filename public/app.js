@@ -132,7 +132,7 @@ function saveAnnotation() {
 
         // Delay redirection by 2 seconds to show the success message
         setTimeout(() => {
-            window.location.href = '/overview.html';
+            window.location.href = '/index.html';
         }, 2000); // 2 seconds delay before redirection
     })
     .catch(error => {
@@ -141,7 +141,7 @@ function saveAnnotation() {
 
         // Delay redirection by 2 seconds to show the error message
         setTimeout(() => {
-            window.location.href = '/overview.html';
+            window.location.href = '/index.html';
         }, 1000); // 1 seconds delay before redirection
     });
 }
