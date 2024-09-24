@@ -41,11 +41,11 @@
 <body>
 
     <h1>Video Annotation Homepage</h1>
-    <h3>Click on any video link with less than 5 annotations to start annotating.</h3>
+    <h3>Click on any video link with less than 3 annotations to start annotating.</h3>
+    <h3>The instructions for annotation will be on the next page.</h3>
     <div id="video-list"></div>
 
     <script>
-        // Fetch the video progress and display it on the page
         async function loadVideoProgress() {
             try {
                 const response = await fetch('/video-progress'); // Fetch progress from the backend
@@ -59,21 +59,18 @@
                 const videoList = document.getElementById('video-list');
                 videoList.innerHTML = ''; // Clear existing content
 
-                // For each video, create a progress bar and video entry
                 videos.forEach(videoData => {
-                    const { video, annotationCount } = videoData;
-                    const progressPercentage = (annotationCount / 5) * 100; // Assuming max 5 annotations
+                    const { video, annotationCount, maxAnnotations } = videoData;
+                    const progressPercentage = (annotationCount / maxAnnotations) * 100;
 
                     const videoEntry = document.createElement('div');
                     videoEntry.className = 'video-entry';
 
-                    // Create clickable video name
                     const videoName = document.createElement('a');
                     videoName.textContent = video;
                     videoName.href = `/annotate.html?video=${video}`;
 
-                    // Gray out if max annotations reached
-                    if (annotationCount >= 5) {
+                    if (annotationCount >= maxAnnotations) {
                         videoName.classList.add('gray-out');
                     }
 
@@ -85,10 +82,9 @@
 
                     progressBar.appendChild(progress);
 
-                    // Create progress text like "4/5 videos annotated"
                     const progressText = document.createElement('span');
                     progressText.className = 'progress-text';
-                    progressText.textContent = `${annotationCount}/5  annotations`;
+                    progressText.textContent = `${annotationCount}/${maxAnnotations} annotations completed`;
 
                     videoEntry.appendChild(videoName);
                     videoEntry.appendChild(progressBar);
@@ -100,7 +96,6 @@
             }
         }
 
-        // Load the video progress when the page loads
         window.onload = loadVideoProgress;
     </script>
 
