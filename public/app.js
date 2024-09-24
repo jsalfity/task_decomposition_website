@@ -125,18 +125,27 @@ function saveAnnotation() {
     })
     .then(response => response.json())
     .then(data => {
+        // Show success message
         document.getElementById('feedback').textContent = 'Annotation saved successfully!';
         document.getElementById('annotations').innerHTML = ''; // Clear displayed annotations
         annotations = []; // Clear current annotation list
 
-        // Redirect back to the overview page after saving
-        window.location.href = '/overview.html';
+        // Delay redirection by 2 seconds to show the success message
+        setTimeout(() => {
+            window.location.href = '/overview.html';
+        }, 2000); // 2 seconds delay before redirection
     })
     .catch(error => {
         console.error('Error saving annotation:', error);
-        document.getElementById('feedback').textContent = 'Error saving annotation.';
+        document.getElementById('feedback').textContent = 'Error saving annotation. Please try again.';
+
+        // Delay redirection by 2 seconds to show the error message
+        setTimeout(() => {
+            window.location.href = '/overview.html';
+        }, 1000); // 1 seconds delay before redirection
     });
 }
+
 
 // Load the video and setup the page when it loads
 window.onload = loadVideoFromURL;

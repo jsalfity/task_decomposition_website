@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Annotation Overview</title>
+    <title>Video Annotation Homepage</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+        }
+        h1, h2 {
+            margin-bottom: 20px;
         }
         .video-entry {
             margin-bottom: 20px;
@@ -29,14 +32,17 @@
             color: gray;
             pointer-events: none; /* Makes it unclickable */
         }
-        h1 {
-            margin-bottom: 20px;
+        .progress-text {
+            margin-left: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <h1>Video Annotation Overview</h1>
+    <h1>Video Annotation Homepage</h1>
+    <h2>Click on a video that needs annotation.</h2>
+
     <div id="video-list"></div>
 
     <script>
@@ -79,8 +85,15 @@
                     progress.style.width = `${progressPercentage}%`;
 
                     progressBar.appendChild(progress);
+
+                    // Create progress text like "4/5 videos annotated"
+                    const progressText = document.createElement('span');
+                    progressText.className = 'progress-text';
+                    progressText.textContent = `${annotationCount}/5 videos annotated`;
+
                     videoEntry.appendChild(videoName);
                     videoEntry.appendChild(progressBar);
+                    videoEntry.appendChild(progressText);
                     videoList.appendChild(videoEntry);
                 });
             } catch (error) {
