@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Annotation Overview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .video-entry {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .progress-bar {
+            width: 200px;
+            height: 20px;
+            background-color: #ddd;
+            margin-left: 20px;
+            position: relative;
+        }
+        .progress {
+            height: 100%;
+            background-color: green;
+        }
+        .gray-out {
+            color: gray;
+            pointer-events: none; /* Makes it unclickable */
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Video Annotation Overview</h1>
+    <div id="video-list"></div>
+
+    <script>
+        // Fetch the video progress and display it on the page
+        async function loadVideoProgress() {
+            try {
+                const response = await fetch('/video-progress'); // Fetch progress from the backend
+                if (!response.ok) {
+                    throw new Error('Failed to fetch video progress');
+                }
+
+                const videos = await response.json();
+                console.log('Fetched video progress:', videos); // Debugging: log fetched data
+
+                const videoList = document.getElementById('video-list');
+                videoList.innerHTML = ''; // Clear existing content
+
+                // For each video, create a progress bar and video entry
+                videos.forEach(videoData => {
+                    const { video, annotationCount } = videoData;
+                    const progressPercentage = (annotationCount / 5) * 100; // Assuming max 5 annotations
+
+                    const videoEntry = document.createElement('div');
+                    videoEntry.className = 'video-entry';
+
+                    // Create clickable video name
+                    const videoName = document.createElement('a');
+                    videoName.textContent = video;
+                    videoName.href = `/annotate.html?video=${video}`;
+
+                    // Gray out if max annotations reached
+                    if (annotationCount >= 5) {
+                        videoName.classList.add('gray-out');
+                    }
+
+                    const progressBar = document.createElement('div');
+                    progressBar.className = 'progress-bar';
+                    const progress = document.createElement('div');
+                    progress.className = 'progress';
+                    progress.style.width = `${progressPercentage}%`;
+
+                    progressBar.appendChild(progress);
+                    videoEntry.appendChild(videoName);
+                    videoEntry.appendChild(progressBar);
+                    videoList.appendChild(videoEntry);
+                });
+            } catch (error) {
+                console.error('Error loading video progress:', error);
+            }
+        }
+
+        // Load the video progress when the page loads
+        window.onload = loadVideoProgress;
+    </script>
+
+</body>
+</html>

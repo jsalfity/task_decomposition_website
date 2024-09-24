@@ -3,27 +3,18 @@ let videos = [];
 let annotations = [];
 let startTime = 0; // Track time spent on each video
 
-// Load the video list from the videos.json file
-async function loadVideoList() {
-    try {
-        const response = await fetch('/videos.json'); // Load video list
-        const data = await response.json();
-        videos = data.videos; // Use videos from the videos.json file
-        loadVideo(); // Load the first available video
-    } catch (error) {
-        console.error('Error loading video list:', error);
-    }
-}
+// Load the video based on the query parameter from the URL
+function loadVideoFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoFilename = urlParams.get('video');
 
-// Load the initial video
-function loadVideo() {
-    const videoPlayer = document.getElementById('videoPlayer');
-    if (videos.length > 0) {
-        videoPlayer.src = videos[videoIndex];
+    if (videoFilename) {
+        const videoPlayer = document.getElementById('videoPlayer');
+        videoPlayer.src = `/videos/${videoFilename}`;
         videoPlayer.load();
         resetTimer(); // Reset the timer for tracking how long the user spends on this video
     } else {
-        document.getElementById('feedback').textContent = 'No videos available.';
+        document.getElementById('feedback').textContent = 'No video selected.';
     }
 }
 
@@ -115,8 +106,8 @@ function saveAnnotation() {
         return;
     }
 
-    const videoSrc = videos[videoIndex];
-    const videoFilename = videoSrc.split("/").pop(); // Extract the video filename
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoFilename = urlParams.get('video'); // Get the video filename from the URL
 
     const annotationData = {
         username: username,
@@ -138,9 +129,8 @@ function saveAnnotation() {
         document.getElementById('annotations').innerHTML = ''; // Clear displayed annotations
         annotations = []; // Clear current annotation list
 
-        // Load the next video
-        videoIndex = (videoIndex + 1) % videos.length;
-        loadVideo();
+        // Redirect back to the overview page after saving
+        window.location.href = '/overview.html';
     })
     .catch(error => {
         console.error('Error saving annotation:', error);
@@ -148,5 +138,5 @@ function saveAnnotation() {
     });
 }
 
-// Load the video list on page load
-window.onload = loadVideoList;
+// Load the video and setup the page when it loads
+window.onload = loadVideoFromURL;

@@ -19,5 +19,16 @@
       ]
     ],
     "timeSpent": 58
+  },
+  {
+    "username": "jsalfity",
+    "subtask_decomposition": [
+      [
+        10,
+        20,
+        "moving down to cube"
+      ]
+    ],
+    "timeSpent": 8
   }
 ]

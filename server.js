@@ -13,41 +13,70 @@ if (!fs.existsSync(annotationsDir)) {
     fs.mkdirSync(annotationsDir);
 }
 
-// Endpoint to save annotations
+// Serve the overview.html page when a user visits /overview
+app.get('/overview', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'overview.html'));
+});
+
+// Serve the annotation page (assuming it’s in public/annotate.html)
+app.get('/annotate.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'annotate.html'));
+});
+
+// Endpoint to get video progress (number of annotations per video)
+app.get('/video-progress', (req, res) => {
+    const videosFile = path.join(__dirname, 'public', 'videos.json'); // Assuming this holds your video filenames
+
+    if (!fs.existsSync(videosFile)) {
+        return res.status(500).json({ message: 'Videos list not found.' });
+    }
+
+    const videos = JSON.parse(fs.readFileSync(videosFile, 'utf8')).videos;
+    const videoProgress = videos.map(video => {
+        const annotationFile = path.join(annotationsDir, `${video}.json`);
+        let annotationCount = 0;
+
+        if (fs.existsSync(annotationFile)) {
+            const fileContent = fs.readFileSync(annotationFile, 'utf8');
+            const annotations = fileContent ? JSON.parse(fileContent) : [];
+            annotationCount = annotations.length;
+        }
+
+        return {
+            video,
+            annotationCount
+        };
+    });
+
+    res.json(videoProgress);
+});
+
+// Endpoint to save annotations (same as before)
 app.post('/save', (req, res) => {
     const { username, video, annotations: userAnnotations } = req.body;
 
-    // Define the file path for the video annotations
     const annotationFile = path.join(annotationsDir, `${video}.json`);
 
-    // Load existing annotations for the video (if any)
     let existingAnnotations = [];
     if (fs.existsSync(annotationFile)) {
         const fileContent = fs.readFileSync(annotationFile, 'utf8');
         existingAnnotations = fileContent ? JSON.parse(fileContent) : [];
     }
 
-    // Structure for the new subtask decomposition
     const subtaskDecomposition = userAnnotations.map(annotation => [
         annotation.startStep,
         annotation.endStep,
         annotation.subtask
     ]);
 
-    // Create a new annotation entry for this user
     const newEntry = {
         username,
         subtask_decomposition: subtaskDecomposition,
-        timeSpent: userAnnotations.reduce((acc, curr) => acc + curr.timeSpent, 0) // Summing up total time spent
+        timeSpent: userAnnotations.reduce((acc, curr) => acc + curr.timeSpent, 0)
     };
 
-    // Add the new annotation to the list
     existingAnnotations.push(newEntry);
-
-    // Save the updated annotations to the file
     fs.writeFileSync(annotationFile, JSON.stringify(existingAnnotations, null, 2), 'utf8');
-
-    // Respond with success
     res.json({ message: 'Annotations saved successfully!' });
 });
 
