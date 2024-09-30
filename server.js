@@ -10,9 +10,6 @@ app.use(express.json());
 
 const MAX_ANNOTATIONS = 3;  // Define the maximum number of annotations allowed per video
 
-// Directory where the annotation files will be stored
-const annotationsDir = path.join(__dirname, 'annotations');
-
 const dbConfig = {
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
