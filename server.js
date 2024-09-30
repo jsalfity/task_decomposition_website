@@ -13,109 +13,186 @@ const MAX_ANNOTATIONS = 3;  // Define the maximum number of annotations allowed 
 // Directory where the annotation files will be stored
 const annotationsDir = path.join(__dirname, 'annotations');
 
-// Initialize the Postgres client
-const client = new Client({
+const dbConfig = {
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? {
-        rejectUnauthorized: false
-    } : false
-});
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+};
 
-client.connect();
+// get table names depending on the NODE_ENV variable in the .env file
+const getTableNames = () => {
+    const env = process.env.NODE_ENV || 'development';
+    const prefix = env === 'production' ? 'prod_' : 'dev_';
+    return {
+        annotations: `${prefix}annotations`,
+        subtasks: `${prefix}subtasks`
+    };
+};
 
-// Ensure the directory exists
-if (!fs.existsSync(annotationsDir)) {
-    fs.mkdirSync(annotationsDir);
-}
+const createTables = async (client, tableNames) => {
+    try {
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS ${tableNames.annotations} (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(255) NOT NULL,
+                video_filename VARCHAR(255) NOT NULL UNIQUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
 
-// Serve the overview.html page when a user visits /overview
-app.get('/overview', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'overview.html'));
-});
+            CREATE TABLE IF NOT EXISTS ${tableNames.subtasks} (
+                id SERIAL PRIMARY KEY,
+                start_step INT NOT NULL,
+                end_step INT NOT NULL,
+                subtask TEXT NOT NULL,
+                time_spent INT NOT NULL,
+                annotation_id INT REFERENCES ${tableNames.annotations}(id)
+            );
+        `);
+        console.log('Tables created successfully');
+    } catch (err) {
+        console.error('Error creating tables:', err);
+        throw err;
+    }
+};
 
-// Serve the annotation page (assuming it’s in public/annotate.html)
-app.get('/annotate.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'annotate.html'));
-});
+const initializeDatabase = async () => {
+    const client = new Client(dbConfig);
+    try {
+        await client.connect();
+        console.log('Connected to the database');
+        const tableNames = getTableNames();
+        await createTables(client, tableNames);
+        return { client, tableNames };
+    } catch (err) {
+        console.error('Error initializing database:', err);
+        throw err;
+    }
+};
 
-// Endpoint to get video progress (number of annotations per video)
-app.get('/video-progress', (req, res) => {
-    const videosFile = path.join(__dirname, 'public', 'videos.json'); // Assuming this holds your video filenames
+let cachedVideos = null;
 
+const loadVideos = () => {
+    if (cachedVideos) {
+        return cachedVideos;
+    }
+
+    const videosFile = path.join(__dirname, 'public', 'videos.json');
     if (!fs.existsSync(videosFile)) {
-        return res.status(500).json({ message: 'Videos list not found.' });
+        throw new Error('Videos list not found.');
     }
 
     const videos = JSON.parse(fs.readFileSync(videosFile, 'utf8')).videos;
-    const videoProgress = videos.map(video => {
-        const annotationFile = path.join(annotationsDir, `${video}.json`);
-        let annotationCount = 0;
+    cachedVideos = videos;
+    return videos;
+};
 
-        if (fs.existsSync(annotationFile)) {
-            const fileContent = fs.readFileSync(annotationFile, 'utf8');
-            const annotations = fileContent ? JSON.parse(fileContent) : [];
-            annotationCount = annotations.length;
+// Routes
+const setupRoutes = (app, client, tableNames) => {
+    app.get('/overview', (_, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'overview.html'));
+    });
+
+    app.get('/annotate.html', (_, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'annotate.html'));
+    });
+
+    app.get('/video-progress', async (_, res) => {
+        try {
+            const videos = loadVideos();
+
+            // Query the database for annotation counts
+            const annotationCounts = await client.query(`
+                SELECT video_filename, COUNT(*) as count
+                FROM ${tableNames.annotations}
+                GROUP BY video_filename
+            `);
+
+            // Create a map of video filenames to their annotation counts
+            const annotationCountMap = new Map(
+                annotationCounts.rows.map(row => [row.video_filename, parseInt(row.count)])
+            );
+
+            const videoProgress = videos.map(video => ({
+                video,
+                annotationCount: annotationCountMap.get(video) || 0,
+                maxAnnotations: MAX_ANNOTATIONS
+            }));
+
+            res.json(videoProgress);
+        } catch (err) {
+            console.error('Error fetching video progress:', err);
+            res.status(500).json({ error: 'Server error' });
         }
-
-        return {
-            video,
-            annotationCount,
-            maxAnnotations: MAX_ANNOTATIONS // Include the max annotations in the response
-        };
     });
 
-    res.json(videoProgress);
-});
+    app.post('/save', async (req, res) => {
+        const { username, video, annotations: userAnnotations } = req.body;
+        try {
+            await client.query('BEGIN');
 
-app.post('/save', (req, res) => {
-    const { username, video, annotations: userAnnotations } = req.body;
+            // Check if an annotation for this video already exists
+            const existingAnnotation = await client.query(
+                `SELECT id FROM ${tableNames.annotations} WHERE video_filename = $1`,
+                [video]
+            );
 
-    userAnnotations.forEach(annotation => {
-        const query_annotations = `
-            INSERT INTO annotations (username, video_filename, time_spent, created_at)
-            VALUES ($1, $2, $3, CURRENT_TIMESTAMP);
-        `;
-        const values_annotations = [
-            username,
-            video,
-            annotation.timeSpent
-        ];
+            console.log(existingAnnotation);
 
-        // query the big table and ask for the annotation_id
-        client.query(query_annotations, values_annotations, (err, result) => {
-            if (err) {
-                console.error('Error saving annotation:', err);
-                return res.status(500).json({ error: 'Database error' });
+            if (existingAnnotation.rows.length) {
+                const errorString = `Annotation already exists for video_filename: ${video}`;
+                console.error(errorString);
+                res.status(500).json({ error: errorString });
+                return;
             }
-            const query_subtask = `
-            INSERT INTO subtask (start_step, end_step, subtask, annotation_id)
-            VALUES ($1, $2, $3, $4);
-            `;
-            const values_subtask = [
-                annotation.startStep,
-                annotation.endStep,
-                annotation.subtask,
-                result.id
-            ];
 
-            client.query(query_subtask, values_subtask, (err, result) => {
-                if (err) {
-                    console.error('Error saving annotation:', err);
-                    return res.status(500).json({ error: 'Database error' });
-                }
-            });
-        });
+            // Insert new annotation
+            const { rows } = await client.query(
+                `INSERT INTO ${tableNames.annotations} (username, video_filename, created_at)
+                     VALUES ($1, $2, CURRENT_TIMESTAMP) RETURNING id`,
+                [username, video]
+            );
+            const annotationId = rows[0].id;
 
+
+            // Insert new subtasks
+            for (const subtask of userAnnotations) {
+                await client.query(
+                    `INSERT INTO ${tableNames.subtasks} (start_step, end_step, subtask, time_spent, annotation_id)
+                     VALUES ($1, $2, $3, $4, $5)`,
+                    [subtask.startStep, subtask.endStep, subtask.subtask, subtask.timeSpent, annotationId]
+                );
+            }
+
+            await client.query('COMMIT');
+            res.json({ message: 'Annotation and subtasks saved successfully!' });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error('Error saving annotation:', err);
+            res.status(500).json({ error: 'Database error' });
+        }
     });
+};
 
-    res.json({ message: 'Annotations saved successfully!' });
-});
 
-// Serve static files from the public directory
-app.use(express.static('public'));
+const startServer = async () => {
+    try {
+        const { client, tableNames } = await initializeDatabase();
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-});
+        console.log(client)
+
+        // Serve static files from public directory
+        app.use(express.static('public'));
+        setupRoutes(app, client, tableNames);
+
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => {
+            console.log(`Server running at http://localhost:${PORT}`);
+            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`Using tables: ${tableNames.annotations}, ${tableNames.subtasks}`);
+        });
+    } catch (err) {
+        console.error('Failed to start server:', err);
+        process.exit(1);
+    }
+};
+
+startServer();
