@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const {Client} = require('pg');
 
 const app = express();
 app.use(express.json());
@@ -9,6 +10,16 @@ const MAX_ANNOTATIONS = 3;  // Define the maximum number of annotations allowed 
 
 // Directory where the annotation files will be stored
 const annotationsDir = path.join(__dirname, 'annotations');
+
+// Initialize the Postgres client
+const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false  // Required for Heroku Postgres
+    }
+});
+
+client.connect();
 
 // Ensure the directory exists
 if (!fs.existsSync(annotationsDir)) {
@@ -54,32 +65,31 @@ app.get('/video-progress', (req, res) => {
     res.json(videoProgress);
 });
 
-// Endpoint to save annotations (same as before)
 app.post('/save', (req, res) => {
     const { username, video, annotations: userAnnotations } = req.body;
 
-    const annotationFile = path.join(annotationsDir, `${video}.json`);
+    userAnnotations.forEach(annotation => {
+        const query = `
+            INSERT INTO annotations (username, video_filename, start_step, end_step, subtask, time_spent, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
+        `;
+        const values = [
+            username,
+            video,
+            annotation.startStep,
+            annotation.endStep,
+            annotation.subtask,
+            annotation.timeSpent
+        ];
 
-    let existingAnnotations = [];
-    if (fs.existsSync(annotationFile)) {
-        const fileContent = fs.readFileSync(annotationFile, 'utf8');
-        existingAnnotations = fileContent ? JSON.parse(fileContent) : [];
-    }
+        client.query(query, values, (err, result) => {
+            if (err) {
+                console.error('Error saving annotation:', err);
+                return res.status(500).json({ error: 'Database error' });
+            }
+        });
+    });
 
-    const subtaskDecomposition = userAnnotations.map(annotation => [
-        annotation.startStep,
-        annotation.endStep,
-        annotation.subtask
-    ]);
-
-    const newEntry = {
-        username,
-        subtask_decomposition: subtaskDecomposition,
-        timeSpent: userAnnotations.reduce((acc, curr) => acc + curr.timeSpent, 0)
-    };
-
-    existingAnnotations.push(newEntry);
-    fs.writeFileSync(annotationFile, JSON.stringify(existingAnnotations, null, 2), 'utf8');
     res.json({ message: 'Annotations saved successfully!' });
 });
 
