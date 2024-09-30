@@ -1,7 +1,9 @@
+// inject environment variables
+require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const {Client} = require('pg');
+const { Client } = require('pg');
 
 const app = express();
 app.use(express.json());
@@ -14,9 +16,9 @@ const annotationsDir = path.join(__dirname, 'annotations');
 // Initialize the Postgres client
 const client = new Client({
     connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false  // Required for Heroku Postgres
-    }
+    ssl: process.env.NODE_ENV === 'production' ? {
+        rejectUnauthorized: false
+    } : false
 });
 
 client.connect();
