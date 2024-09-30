@@ -69,25 +69,41 @@ app.post('/save', (req, res) => {
     const { username, video, annotations: userAnnotations } = req.body;
 
     userAnnotations.forEach(annotation => {
-        const query = `
-            INSERT INTO annotations (username, video_filename, start_step, end_step, subtask, time_spent, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
+        const query_annotations = `
+            INSERT INTO annotations (username, video_filename, time_spent, created_at)
+            VALUES ($1, $2, $3, CURRENT_TIMESTAMP);
         `;
-        const values = [
+        const values_annotations = [
             username,
             video,
-            annotation.startStep,
-            annotation.endStep,
-            annotation.subtask,
             annotation.timeSpent
         ];
 
-        client.query(query, values, (err, result) => {
+        // query the big table and ask for the annotation_id
+        client.query(query_annotations, values_annotations, (err, result) => {
             if (err) {
                 console.error('Error saving annotation:', err);
                 return res.status(500).json({ error: 'Database error' });
             }
+            const query_subtask = `
+            INSERT INTO subtask (start_step, end_step, subtask, annotation_id)
+            VALUES ($1, $2, $3, $4);
+            `;
+            const values_subtask = [
+                annotation.startStep,
+                annotation.endStep,
+                annotation.subtask,
+                result.id
+            ];
+
+            client.query(query_subtask, values_subtask, (err, result) => {
+                if (err) {
+                    console.error('Error saving annotation:', err);
+                    return res.status(500).json({ error: 'Database error' });
+                }
+            });
         });
+
     });
 
     res.json({ message: 'Annotations saved successfully!' });
