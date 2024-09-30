@@ -113,7 +113,6 @@ const setupRoutes = (app, client, tableNames) => {
 
             const videoProgress = videos.map(video => {
                 const count = subtaskCountMap.get(video) || 0;
-                console.log(`Video: ${video}, Subtask Count: ${count}`);
                 return {
                     video,
                     annotationCount: count,
