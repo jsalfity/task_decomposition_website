@@ -96,28 +96,35 @@ const setupRoutes = (app, client, tableNames) => {
         try {
             const videos = loadVideos();
 
-            // Query the database for annotation counts
-            const annotationCounts = await client.query(`
-                SELECT video_filename, COUNT(*) as count
-                FROM ${tableNames.annotations}
-                GROUP BY video_filename
-            `);
+            // Query the database for subtask counts
+            const subtaskCountsQuery = `
+            SELECT a.video_filename, COUNT(s.id) as count
+            FROM ${tableNames.annotations} a
+            LEFT JOIN ${tableNames.subtasks} s ON a.id = s.annotation_id
+            GROUP BY a.video_filename
+        `;
 
-            // Create a map of video filenames to their annotation counts
-            const annotationCountMap = new Map(
-                annotationCounts.rows.map(row => [row.video_filename, parseInt(row.count)])
+            const subtaskCounts = await client.query(subtaskCountsQuery);
+
+            // Create a map of video filenames to their subtask counts
+            const subtaskCountMap = new Map(
+                subtaskCounts.rows.map(row => [row.video_filename, parseInt(row.count)])
             );
 
-            const videoProgress = videos.map(video => ({
-                video,
-                annotationCount: annotationCountMap.get(video) || 0,
-                maxAnnotations: MAX_ANNOTATIONS
-            }));
+            const videoProgress = videos.map(video => {
+                const count = subtaskCountMap.get(video) || 0;
+                console.log(`Video: ${video}, Subtask Count: ${count}`);
+                return {
+                    video,
+                    annotationCount: count,
+                    maxAnnotations: MAX_ANNOTATIONS
+                };
+            });
 
             res.json(videoProgress);
         } catch (err) {
             console.error('Error fetching video progress:', err);
-            res.status(500).json({ error: 'Server error' });
+            res.status(500).json({ error: 'Server error', details: err.message });
         }
     });
 
@@ -131,8 +138,6 @@ const setupRoutes = (app, client, tableNames) => {
                 `SELECT id FROM ${tableNames.annotations} WHERE video_filename = $1`,
                 [video]
             );
-
-            console.log(existingAnnotation);
 
             if (existingAnnotation.rows.length) {
                 const errorString = `Annotation already exists for video_filename: ${video}`;
@@ -173,8 +178,6 @@ const setupRoutes = (app, client, tableNames) => {
 const startServer = async () => {
     try {
         const { client, tableNames } = await initializeDatabase();
-
-        console.log(client)
 
         // Serve static files from public directory
         app.use(express.static('public'));
