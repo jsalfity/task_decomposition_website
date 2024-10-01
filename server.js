@@ -15,11 +15,18 @@ const dbConfig = {
     ssl: process.env.IN_HEROKU === 'true' ? { rejectUnauthorized: false } : false
 };
 
+// NOTE: add any tests tables here
+const tableNameMap = {
+    "development": "dev_",
+    "production": "prod_",
+    "test1": "test1_"
+}
+
 // get table names depending on the NODE_ENV variable in the .env file
 // this will either be "development" or "production"
 const getTableNames = () => {
     const env = process.env.NODE_ENV || 'development';
-    const prefix = env === 'production' ? 'prod_' : 'dev_';
+    const prefix = tableNameMap[env];
 
     return {
         annotations: `${prefix}annotations`,
