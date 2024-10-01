@@ -16,9 +16,11 @@ const dbConfig = {
 };
 
 // get table names depending on the NODE_ENV variable in the .env file
+// this will either be "development" or "production"
 const getTableNames = () => {
     const env = process.env.NODE_ENV || 'development';
     const prefix = env === 'production' ? 'prod_' : 'dev_';
+
     return {
         annotations: `${prefix}annotations`,
         subtasks: `${prefix}subtasks`
