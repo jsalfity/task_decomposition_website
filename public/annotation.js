@@ -148,13 +148,12 @@ function saveAnnotation() {
 }
 
 function saveUsername() {
-    const username = document.getElementById('username').value;
+    const username = document.getElementById('username').value.trim();
     localStorage.setItem('annotationUsername', username);
 }
 
 // Function to load username from localStorage
 function loadUsername() {
-    console.log("loading")
     const savedUsername = localStorage.getItem('annotationUsername');
     if (savedUsername) {
         document.getElementById('username').value = savedUsername;
