@@ -1,10 +1,11 @@
 // inject environment variables
 require('dotenv').config();
+const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { Client } = require('pg');
-const app = require('express')();
 
+const app = express();
 app.use(express.json());
 
 const MAX_ANNOTATIONS = 3;  // Define the maximum number of annotations allowed per video
