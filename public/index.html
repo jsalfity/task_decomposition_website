@@ -70,13 +70,7 @@
                     videoName.textContent = video;
                     videoName.href = `/annotate.html?video=${video}`;
 
-                    // if (annotationCount >= maxAnnotations) {
-                    //     videoName.classList.add('gray-out');
-                    // }
-
-                    // NOTE: we can talk about this, but for now if someone has submitted annotations
-                    // don't allow more (whatever we choose, need this to agree with server-side logic)
-                    if (annotationCount) {
+                    if (annotationCount >= maxAnnotations) {
                         videoName.classList.add('gray-out');
                     }
 

@@ -31,7 +31,7 @@ const createTables = async (client, tableNames) => {
             CREATE TABLE IF NOT EXISTS ${tableNames.annotations} (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(255) NOT NULL,
-                video_filename VARCHAR(255) NOT NULL UNIQUE,
+                video_filename VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -51,12 +51,28 @@ const createTables = async (client, tableNames) => {
     }
 };
 
-const initializeDatabase = async () => {
+const dropTables = async (client, tableNames) => {
+    try {
+        await client.query(`
+            DROP TABLE IF EXISTS ${tableNames.subtasks};
+            DROP TABLE IF EXISTS ${tableNames.annotations};
+        `);
+        console.log('Tables dropped successfully');
+    } catch (err) {
+        console.error('Error dropping tables:', err);
+        throw err;
+    }
+};
+
+const initializeDatabase = async (shouldDropTables) => {
     const client = new Client(dbConfig);
     try {
         await client.connect();
         console.log('Connected to the database');
         const tableNames = getTableNames();
+        if (shouldDropTables) {
+            await dropTables(client, tableNames);
+        }
         await createTables(client, tableNames);
         return { client, tableNames };
     } catch (err) {
@@ -96,15 +112,14 @@ const setupRoutes = (app, client, tableNames) => {
         try {
             const videos = loadVideos();
 
-            // Query the database for subtask counts
-            const subtaskCountsQuery = `
-            SELECT a.video_filename, COUNT(s.id) as count
-            FROM ${tableNames.annotations} a
-            LEFT JOIN ${tableNames.subtasks} s ON a.id = s.annotation_id
-            GROUP BY a.video_filename
-        `;
+            // Query db for annotation counts
+            const annotationCountsQuery = `
+                SELECT a.video_filename, COUNT(a.id) as count
+                FROM ${tableNames.annotations} a
+                GROUP BY a.video_filename
+            `
 
-            const subtaskCounts = await client.query(subtaskCountsQuery);
+            const subtaskCounts = await client.query(annotationCountsQuery);
 
             // Create a map of video filenames to their subtask counts
             const subtaskCountMap = new Map(
@@ -115,7 +130,8 @@ const setupRoutes = (app, client, tableNames) => {
                 const count = subtaskCountMap.get(video) || 0;
                 return {
                     video,
-                    annotationCount: count,
+                    // only show up to a count of up to 3 annotations
+                    annotationCount: Math.min(count, MAX_ANNOTATIONS),
                     maxAnnotations: MAX_ANNOTATIONS
                 };
             });
@@ -131,19 +147,6 @@ const setupRoutes = (app, client, tableNames) => {
         const { username, video, annotations: userAnnotations } = req.body;
         try {
             await client.query('BEGIN');
-
-            // Check if an annotation for this video already exists
-            const existingAnnotation = await client.query(
-                `SELECT id FROM ${tableNames.annotations} WHERE video_filename = $1`,
-                [video]
-            );
-
-            if (existingAnnotation.rows.length) {
-                const errorString = `Annotation already exists for video_filename: ${video}`;
-                console.error(errorString);
-                res.status(500).json({ error: errorString });
-                return;
-            }
 
             // Insert new annotation
             const { rows } = await client.query(
@@ -168,7 +171,7 @@ const setupRoutes = (app, client, tableNames) => {
         } catch (err) {
             await client.query('ROLLBACK');
             console.error('Error saving annotation:', err);
-            res.status(500).json({ error: 'Database error' });
+            res.status(500).json({ error: `Database error: ${err}` });
         }
     });
 };
@@ -176,7 +179,8 @@ const setupRoutes = (app, client, tableNames) => {
 
 const startServer = async () => {
     try {
-        const { client, tableNames } = await initializeDatabase();
+        const shouldDropTables = process.argv.includes("--drop-tables");
+        const { client, tableNames } = await initializeDatabase(shouldDropTables);
 
         // Serve static files from public directory
         app.use(express.static('public'));
