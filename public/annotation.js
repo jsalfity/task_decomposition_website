@@ -147,6 +147,22 @@ function saveAnnotation() {
         });
 }
 
+function saveUsername() {
+    const username = document.getElementById('username').value;
+    localStorage.setItem('annotationUsername', username);
+}
+
+// Function to load username from localStorage
+function loadUsername() {
+    console.log("loading")
+    const savedUsername = localStorage.getItem('annotationUsername');
+    if (savedUsername) {
+        document.getElementById('username').value = savedUsername;
+    }
+}
+
+// Call loadUsername when the page loads
+window.addEventListener('load', loadUsername);
 
 // Load the video and setup the page when it loads
 window.onload = loadVideoFromURL;
