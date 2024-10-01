@@ -12,7 +12,7 @@ const MAX_ANNOTATIONS = 3;  // Define the maximum number of annotations allowed 
 
 const dbConfig = {
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: process.env.IN_HEROKU === 'true' ? { rejectUnauthorized: false } : false
 };
 
 // get table names depending on the NODE_ENV variable in the .env file
