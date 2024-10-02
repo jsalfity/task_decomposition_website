@@ -124,29 +124,44 @@ function saveAnnotation() {
         },
         body: JSON.stringify(annotationData),
     })
-    .then(response => response.json())
-    .then(data => {
-        // Show success message
-        document.getElementById('feedback').textContent = 'Annotation saved successfully!';
-        document.getElementById('annotations').innerHTML = ''; // Clear displayed annotations
-        annotations = []; // Clear current annotation list
+        .then(response => response.json())
+        .then(_ => {
+            // Show success message
+            document.getElementById('feedback').textContent = 'Annotation saved successfully!';
+            document.getElementById('annotations').innerHTML = ''; // Clear displayed annotations
+            annotations = []; // Clear current annotation list
 
-        // Delay redirection by 2 seconds to show the success message
-        setTimeout(() => {
-            window.location.href = '/index.html';
-        }, 2000); // 2 seconds delay before redirection
-    })
-    .catch(error => {
-        console.error('Error saving annotation:', error);
-        document.getElementById('feedback').textContent = 'Error saving annotation. Please try again.';
+            // Delay redirection by 2 seconds to show the success message
+            setTimeout(() => {
+                window.location.href = '/index.html';
+            }, 2000); // 2 seconds delay before redirection
+        })
+        .catch(error => {
+            console.error('Error saving annotation:', error);
+            document.getElementById('feedback').textContent = 'Error saving annotation. Please try again.';
 
-        // Delay redirection by 2 seconds to show the error message
-        setTimeout(() => {
-            window.location.href = '/index.html';
-        }, 1000); // 1 seconds delay before redirection
-    });
+            // Delay redirection by 2 seconds to show the error message
+            setTimeout(() => {
+                window.location.href = '/index.html';
+            }, 1000); // 1 seconds delay before redirection
+        });
 }
 
+function saveUsername() {
+    const username = document.getElementById('username').value.trim();
+    localStorage.setItem('annotationUsername', username);
+}
+
+// Function to load username from localStorage
+function loadUsername() {
+    const savedUsername = localStorage.getItem('annotationUsername');
+    if (savedUsername) {
+        document.getElementById('username').value = savedUsername;
+    }
+}
+
+// Call loadUsername when the page loads
+window.addEventListener('load', loadUsername);
 
 // Load the video and setup the page when it loads
 window.onload = loadVideoFromURL;
