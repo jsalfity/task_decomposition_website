@@ -8,7 +8,6 @@ const { Client } = require('pg');
 const app = express();
 app.use(express.json());
 
-const MAX_ANNOTATIONS = 3;  // Define the maximum number of annotations allowed per video
 
 const dbConfig = {
     connectionString: process.env.DATABASE_URL,
@@ -140,8 +139,8 @@ const setupRoutes = (app, client, tableNames) => {
                 return {
                     video,
                     // only show up to a count of up to 3 annotations
-                    annotationCount: Math.min(count, MAX_ANNOTATIONS),
-                    maxAnnotations: MAX_ANNOTATIONS
+                    annotationCount: Math.min(count, process.env.MAX_ANNOTATIONS_PER_VIDEO),
+                    maxAnnotations: process.env.MAX_ANNOTATIONS_PER_VIDEO
                 };
             });
 
