@@ -1,0 +1,55 @@
+[
+  {
+    "username": "jsalfity",
+    "subtask_decomposition": [
+      [
+        10,
+        20,
+        "reaching down to cube"
+      ],
+      [
+        21,
+        23,
+        "picking up cube"
+      ]
+    ],
+    "timeSpent": 18
+  },
+  {
+    "username": "jsalfity",
+    "subtask_decomposition": [
+      [
+        1,
+        20,
+        "reaching down to cube"
+      ],
+      [
+        10,
+        20,
+        "picking up cube"
+      ],
+      [
+        22,
+        30,
+        "moving away from cube"
+      ]
+    ],
+    "timeSpent": 25
+  },
+  {
+    "username": "phl",
+    "subtask_decomposition": [
+      [
+        0,
+        12,
+        "moving to cube"
+      ],
+      [
+        13,
+        20,
+        "picking up cube"
+      ]
+    ],
+    "timeSpent": 14
+  }
+]
