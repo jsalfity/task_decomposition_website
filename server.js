@@ -12,6 +12,7 @@ const MAX_ANNOTATIONS = 3;  // Define the maximum number of annotations allowed 
 
 const dbConfig = {
     connectionString: process.env.DATABASE_URL,
+    // Heroku mandates SSL connections to pg databases as a security best practice
     ssl: process.env.IN_HEROKU === 'true' ? { rejectUnauthorized: false } : false
 };
 
@@ -27,7 +28,6 @@ const tableNameMap = {
 const getTableNames = () => {
     const env = process.env.NODE_ENV || 'development';
     const prefix = tableNameMap[env];
-
     return {
         annotations: `${prefix}annotations`,
         subtasks: `${prefix}subtasks`
@@ -43,7 +43,6 @@ const createTables = async (client, tableNames) => {
                 video_filename VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-
             CREATE TABLE IF NOT EXISTS ${tableNames.subtasks} (
                 id SERIAL PRIMARY KEY,
                 start_step INT NOT NULL,
