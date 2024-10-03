@@ -107,6 +107,11 @@ function saveAnnotation() {
         return;
     }
 
+    if (!annotations.length) {
+        alert("You must provide at least one subtask to this annotation.");
+        return;
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const videoFilename = urlParams.get('video'); // Get the video filename from the URL
 
