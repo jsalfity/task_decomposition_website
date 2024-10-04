@@ -108,7 +108,7 @@ function saveAnnotation() {
     }
 
     if (!annotations.length) {
-        alert("You must provide at least one subtask to this annotation.");
+        alert("You must label at least one subtask in this annotation.");
         return;
     }
 
