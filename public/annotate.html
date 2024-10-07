@@ -108,28 +108,28 @@
         <!-- Form to input subtasks -->
         <div>
             <label for="startStep">Start Step:</label>
-            <input type="number" id="startStep" min="0" placeholder="insert start step" style="width: 110px; font-style: italic;">
+            <input type="number" id="startStep" min="0" placeholder="<insert>" style="width: 65px; font-style: italic;">
 
             <label for="endStep">End Step:</label>
-            <input type="number" id="endStep" min="0" placeholder="insert end step" style="width: 110px;font-style: italic;">
+            <input type="number" id="endStep" min="0" placeholder="<insert>" style="width: 65px;font-style: italic;">
 
             <label for="subtask">Subtask:</label>
-            <input type="text" id="subtask" placeholder="insert subtask description"  style="width: 200px; font-style: italic;">
+            <input type="text" id="subtask" placeholder="<insert>"  style="width: 200px; font-style: italic;">
 
             <button onclick="addSubtask()">Add to Subtask Decomposition</button>
         </div>
 
-<!-- Display the current list of subtasks -->
-<div id="annotation-list">
-    <h3>Subtask Decomposition:</h3>
+        <!-- Display the current list of subtasks -->
+        <div id="annotation-list">
+            <h3>Subtask Decomposition:</h3>
 
-    <!-- Placeholder message that will be shown until the first subtask is added -->
-    <div id="subtask-placeholder" style="color: gray; font-style: italic;">
-        No subtasks added yet.
-    </div>
+            <!-- Placeholder message that will be shown until the first subtask is added -->
+            <div id="subtask-placeholder" style="color: gray; font-style: italic;">
+                No subtasks added yet.
+            </div>
 
-    <ul id="annotations"></ul>
-</div>
+            <ul id="annotations"></ul>
+        </div>
 
         <!-- Save button -->
         <div>
