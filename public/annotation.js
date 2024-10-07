@@ -30,7 +30,6 @@ function getElapsedTime() {
     return Math.floor((currentTime - startTime) / 1000); // Calculate elapsed time in seconds
 }
 
-// Function to add a subtask to the list of annotations
 function addSubtask() {
     const startStep = parseInt(document.getElementById('startStep').value);
     const endStep = parseInt(document.getElementById('endStep').value);
@@ -41,6 +40,12 @@ function addSubtask() {
     if (isNaN(startStep) || isNaN(endStep) || !subtask) {
         alert("Please provide valid inputs for all fields.");
         return;
+    }
+
+    // Hide the placeholder message when the first subtask is added
+    const placeholder = document.getElementById('subtask-placeholder');
+    if (placeholder) {
+        placeholder.style.display = 'none';
     }
 
     // Add the subtask to the annotations array
@@ -97,7 +102,16 @@ function removeSubtask(button) {
 
     // Remove the list item from the DOM
     li.remove();
+
+    // Show the placeholder message if no subtasks remain
+    if (annotations.length === 0) {
+        const placeholder = document.getElementById('subtask-placeholder');
+        if (placeholder) {
+            placeholder.style.display = 'block';
+        }
+    }
 }
+
 
 // Function to save the annotation and update user progress
 function saveAnnotation() {

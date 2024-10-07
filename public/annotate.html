@@ -108,31 +108,33 @@
         <!-- Form to input subtasks -->
         <div>
             <label for="startStep">Start Step:</label>
-            <input type="number" id="startStep" min="0" placeholder="insert start step" style="width: 110px">
+            <input type="number" id="startStep" min="0" placeholder="insert start step" style="width: 110px; font-style: italic;">
 
             <label for="endStep">End Step:</label>
-            <input type="number" id="endStep" min="0" placeholder="insert end step" style="width: 110px">
+            <input type="number" id="endStep" min="0" placeholder="insert end step" style="width: 110px;font-style: italic;">
 
             <label for="subtask">Subtask:</label>
-            <input type="text" id="subtask" placeholder="insert subtask description"  style="width: 200px">
+            <input type="text" id="subtask" placeholder="insert subtask description"  style="width: 200px; font-style: italic;">
 
             <button onclick="addSubtask()">Add to Subtask Decomposition</button>
         </div>
 
-        <!-- Display the current list of subtasks -->
-        <div id="annotation-list">
-            <h3>Subtask Decomposition:</h3>
-            <ul id="annotations"></ul>
-        </div>
+<!-- Display the current list of subtasks -->
+<div id="annotation-list">
+    <h3>Subtask Decomposition:</h3>
+
+    <!-- Placeholder message that will be shown until the first subtask is added -->
+    <div id="subtask-placeholder" style="color: gray; font-style: italic;">
+        No subtasks added yet.
+    </div>
+
+    <ul id="annotations"></ul>
+</div>
 
         <!-- Save button -->
         <div>
-            <button onclick="saveAnnotation()" class="green-button">Save Subtask Decomposition Annotation<br>Exit to Homepage</button>
-        </div>
-
-        <!-- Exit to Homepage button-->
-        <div>
-            <button onclick="window.location.href = '/';" class="red-button">Do not save<br>Exit to Homepage</button>
+            <button onclick="saveAnnotation()" class="green-button">Save Annotation &<br>Exit to Homepage.</button>
+            <button onclick="window.location.href = '/';" class="red-button">Do Not Save &<br>Exit to Homepage.</button>
         </div>
 
         <!-- Feedback message -->
@@ -168,7 +170,7 @@
             <li>Focus on changes in the robot's actions and environment.</li>
             <li>Keep descriptions concise and clear (noun & verb).</li>
             <li>You can edit or remove subtasks before submitting.</li>
-            <li>Each annotation is being timed. Be quick, but don't rush.</li>
+            <li>Each annotation is timed. Be quick - but don't hurry!</li>
         </ul>
 
     </div>
