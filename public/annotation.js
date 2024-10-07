@@ -54,7 +54,7 @@ function addSubtask() {
         <input type="number" class="edit-start-step" value="${startStep}" min="0">
         <input type="number" class="edit-end-step" value="${endStep}" min="0">
         <input type="text" class="edit-subtask" value="${subtask}">
-        <button onclick="updateSubtask(this)">Save Changes</button>
+        <button onclick="updateSubtask(this)">Save Changes (if edited)</button>
         <button onclick="removeSubtask(this)">Remove</button>
     `;
     annotationList.appendChild(li);
@@ -132,20 +132,20 @@ function saveAnnotation() {
         .then(response => response.json())
         .then(_ => {
             // Show success message
-            document.getElementById('feedback').textContent = 'Annotation saved successfully!';
+            document.getElementById('feedback').textContent = 'Annotation saved successfully! Redirecting to the homepage...';
             document.getElementById('annotations').innerHTML = ''; // Clear displayed annotations
             annotations = []; // Clear current annotation list
 
-            // Delay redirection by 2 seconds to show the success message
+            // Delay redirection by 1 seconds to show the success message
             setTimeout(() => {
                 window.location.href = '/index.html';
-            }, 2000); // 2 seconds delay before redirection
+            }, 1000); // 1 seconds delay before redirection
         })
         .catch(error => {
             console.error('Error saving annotation:', error);
             document.getElementById('feedback').textContent = 'Error saving annotation. Please try again.';
 
-            // Delay redirection by 2 seconds to show the error message
+            // Delay redirection by 1 seconds to show the error message
             setTimeout(() => {
                 window.location.href = '/index.html';
             }, 1000); // 1 seconds delay before redirection
