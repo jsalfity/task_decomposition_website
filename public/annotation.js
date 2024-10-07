@@ -59,7 +59,7 @@ function addSubtask() {
         <input type="number" class="edit-start-step" value="${startStep}" min="0">
         <input type="number" class="edit-end-step" value="${endStep}" min="0">
         <input type="text" class="edit-subtask" value="${subtask}" style="width: 150px">
-        <button onclick="updateSubtask(this)">Update</button>
+        <button onclick="updateSubtask(this)">Update and Save</button>
         <button onclick="removeSubtask(this)">Remove</button>
     `;
     annotationList.appendChild(li);
