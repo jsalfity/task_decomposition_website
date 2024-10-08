@@ -52,6 +52,37 @@
         h3 {
             margin-top: 0;
         }
+
+        /* Styling for buttons */
+        .green-button {
+        background-color: green;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        border: none; /* Remove default border */
+        cursor: pointer; /* Change cursor to pointer */
+        text-align: left;
+        }
+
+        .green-button:hover {
+            background-color: darkgreen; /* Slightly darker green on hover */
+        }
+
+        /*red button*/
+        .red-button {
+        background-color: red;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        border: none; /* Remove default border */
+        cursor: pointer; /* Change cursor to pointer */
+        text-align: left;
+        }
+
+        .red-button:hover {
+            background-color: darkred; /* Slightly darker green on hover */
+        }
+
     </style>
 </head>
 <body>
@@ -77,26 +108,33 @@
         <!-- Form to input subtasks -->
         <div>
             <label for="startStep">Start Step:</label>
-            <input type="number" id="startStep" min="0" placeholder="0">
+            <input type="number" id="startStep" min="0" placeholder="<insert>" style="width: 65px; font-style: italic;">
 
             <label for="endStep">End Step:</label>
-            <input type="number" id="endStep" min="0" placeholder="1">
+            <input type="number" id="endStep" min="0" placeholder="<insert>" style="width: 65px;font-style: italic;">
 
             <label for="subtask">Subtask:</label>
-            <input type="text" id="subtask" placeholder="Subtask description">
+            <input type="text" id="subtask" placeholder="<insert>"  style="width: 200px; font-style: italic;">
 
-            <button onclick="addSubtask()">Add Subtask</button>
+            <button onclick="addSubtask()">Add to Subtask Decomposition</button>
         </div>
 
         <!-- Display the current list of subtasks -->
         <div id="annotation-list">
-            <h3>Subtask Annotations:</h3>
+            <h3>Subtask Decomposition:</h3>
+
+            <!-- Placeholder message that will be shown until the first subtask is added -->
+            <div id="subtask-placeholder" style="color: gray; font-style: italic;">
+                No subtasks added yet.
+            </div>
+
             <ul id="annotations"></ul>
         </div>
 
         <!-- Save button -->
         <div>
-            <button onclick="saveAnnotation()">Save Annotation</button>
+            <button onclick="saveAnnotation()" class="green-button">Save Annotation &<br>Exit to Homepage.</button>
+            <button onclick="window.location.href = '/';" class="red-button">Do Not Save &<br>Exit to Homepage.</button>
         </div>
 
         <!-- Feedback message -->
@@ -106,57 +144,35 @@
     <!-- Right column: Instructions -->
     <div id="instructions-container">
         <h3>Instructions</h3>
-        <p>Your task is to watch the robot episode presented in the video player and break down the robot's behavior into granular subtasks using the form provided. Each video is annotated with step numbers to help identify the start and end step of each subtask</p>
+        <p>Watch the video and break down the robot's behavior into subtasks using the form. 
+            Use the <span style="color: blue;">blue step numbers</span> (not the seconds!) in the top left of the video to identify the start and end steps for each subtask.</p>
 
         <ol>
-            <li>
-                <strong>Watch the video carefully</strong> and notice the step annotations on the video. These steps will help you define the start and end steps of each subtask.
-            </li>
-            <li>
-                <strong>For each subtask</strong>, fill out the following fields:
-                <ul>
-                    <li><strong>username</strong>: Pick some username for you and keep consistent throughout the annotation process</li>
-                    <li><strong>Start Step</strong>: Enter the start step of the subtask (in blue text on the video frames).</li>
-                    <li><strong>End Step</strong>: Enter the end step of the subtask (in blue text on the video frames).</li>
-                    <li><strong>Subtask Description</strong>: Provide a short description of what the robot is doing during this step period (e.g., "grasping the object" or "moving to object").</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Click "Add Subtask"</strong> to add the subtask to the list. You will see the subtask appear below, with the start step, end step, and description displayed.
-            </li>
-            <li>
-                <strong>Edit or Remove Subtasks</strong>:
-                <ul>
-                    <li>If you need to modify a subtask after adding it, you can directly edit the start step, end step, or description in the displayed list.</li>
-                    <li>Click "Save Changes" next to the subtask after making edits.</li>
-                    <li>To delete a subtask, click "Remove" next to the corresponding subtask.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Save your complete annotation</strong>:
-                <ul>
-                    <li>After entering all the subtasks for the video, click the "Save Annotation" button.</li>
-                    <li>This will submit your decomposition, saving the list of subtasks for this video.</li>
-                </ul>
-            </li>
+            <li><strong>Username</strong> Pick a username and keep it consistent throughout the annotation process.</li>
+            <li><strong>Watch the video carefully</strong> and use the step numbers to define the start and end steps of each subtask.</li>
+            <li><strong>For each subtask</strong>, fill in the start step, end step, and provide a brief description of the action (e.g., "grasping object", "moving back to home").</li>
+            <li>Click <strong>"Add to Subtask Decomposition"</strong> to add it to the "Subtask Decomposition" list. You can edit or remove subtasks if needed.</li>
+            <li>Once all subtasks are added, click <strong>"Save Annotation & Exit to Homepage"</strong> to submit.</li>
         </ol>
 
-        <h4>Example of a Subtask Decomposition:</h4>
+        <h4>Example Subtask Decomposition:</h4>
         <pre>
         subtask_decomposition = [
-            (0, 5, "move to above object"),
-            (6, 10, "reach down to grab object"),
-            (11, 15, "pick up object"),
-            (16, 20, "move away from object")
+            (0, 5, move to above object),
+            (6, 10, reach down to grab object),
+            (11, 15, pick up object),
+            (16, 20, move away from object)
         ]
         </pre>
 
-        <h4>Points to Remember:</h4>
+        <h4>Tips:</h4>
         <ul>
-            <li>Pay attention to changes in the robot's actions and environment to determine subtask boundaries.</li>
-            <li>Keep your subtask descriptions concise and clear. Usually, a full sentence with a noun and a verb will work.</li>
-            <li>You can update or remove any subtasks before saving the final annotation.</li>
+            <li>Focus on changes in the robot's actions and environment.</li>
+            <li>Keep descriptions concise and clear (use nouns, verb).</li>
+            <li>You can edit or remove subtasks before submitting.</li>
+            <li>Each annotation is timed. Be quick - but don't hurry.</li>
         </ul>
+
     </div>
 
     <!-- Include the app.js file -->

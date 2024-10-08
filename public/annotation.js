@@ -30,7 +30,6 @@ function getElapsedTime() {
     return Math.floor((currentTime - startTime) / 1000); // Calculate elapsed time in seconds
 }
 
-// Function to add a subtask to the list of annotations
 function addSubtask() {
     const startStep = parseInt(document.getElementById('startStep').value);
     const endStep = parseInt(document.getElementById('endStep').value);
@@ -43,6 +42,12 @@ function addSubtask() {
         return;
     }
 
+    // Hide the placeholder message when the first subtask is added
+    const placeholder = document.getElementById('subtask-placeholder');
+    if (placeholder) {
+        placeholder.style.display = 'none';
+    }
+
     // Add the subtask to the annotations array
     const subtaskTuple = { startStep, endStep, subtask, timeSpent: elapsedTime };
     annotations.push(subtaskTuple);
@@ -53,8 +58,8 @@ function addSubtask() {
     li.innerHTML = `
         <input type="number" class="edit-start-step" value="${startStep}" min="0">
         <input type="number" class="edit-end-step" value="${endStep}" min="0">
-        <input type="text" class="edit-subtask" value="${subtask}">
-        <button onclick="updateSubtask(this)">Save Changes</button>
+        <input type="text" class="edit-subtask" value="${subtask}" style="width: 150px">
+        <button onclick="updateSubtask(this)">Update and Save</button>
         <button onclick="removeSubtask(this)">Remove</button>
     `;
     annotationList.appendChild(li);
@@ -97,7 +102,16 @@ function removeSubtask(button) {
 
     // Remove the list item from the DOM
     li.remove();
+
+    // Show the placeholder message if no subtasks remain
+    if (annotations.length === 0) {
+        const placeholder = document.getElementById('subtask-placeholder');
+        if (placeholder) {
+            placeholder.style.display = 'block';
+        }
+    }
 }
+
 
 // Function to save the annotation and update user progress
 function saveAnnotation() {
@@ -132,20 +146,20 @@ function saveAnnotation() {
         .then(response => response.json())
         .then(_ => {
             // Show success message
-            document.getElementById('feedback').textContent = 'Annotation saved successfully!';
+            document.getElementById('feedback').textContent = 'Annotation saved successfully! Redirecting to the homepage...';
             document.getElementById('annotations').innerHTML = ''; // Clear displayed annotations
             annotations = []; // Clear current annotation list
 
-            // Delay redirection by 2 seconds to show the success message
+            // Delay redirection by 1 seconds to show the success message
             setTimeout(() => {
                 window.location.href = '/index.html';
-            }, 2000); // 2 seconds delay before redirection
+            }, 1000); // 1 seconds delay before redirection
         })
         .catch(error => {
             console.error('Error saving annotation:', error);
             document.getElementById('feedback').textContent = 'Error saving annotation. Please try again.';
 
-            // Delay redirection by 2 seconds to show the error message
+            // Delay redirection by 1 seconds to show the error message
             setTimeout(() => {
                 window.location.href = '/index.html';
             }, 1000); // 1 seconds delay before redirection
