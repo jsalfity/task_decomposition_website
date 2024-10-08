@@ -42,7 +42,7 @@
 
     <h1>Video Annotation Homepage</h1>
     <h3>Find a video with 0 annotations completed.</h3>
-    <h3>If all videos have at least one annotation, pick any video.</h3>
+    <!-- <h3>If all videos have at least one annotation, pick any video.</h3> -->
     <h3>The instructions for annotation will be on the next page.</h3>
     <h5>Contact Jonathan Salfity [j.salfity@utexas.edu] for any difficulties / questions.</h5>
     <div id="video-list"></div>
@@ -86,7 +86,7 @@
 
                     const progressText = document.createElement('span');
                     progressText.className = 'progress-text';
-                    progressText.textContent = `${annotationCount}/${maxAnnotations} annotations completed`;
+                    progressText.textContent = `${annotationCount}/${maxAnnotations} annotation(s) completed`;
 
                     videoEntry.appendChild(videoName);
                     videoEntry.appendChild(progressBar);
